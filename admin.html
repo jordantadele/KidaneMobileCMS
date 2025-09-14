@@ -1,0 +1,2240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kidane Mobile - Admin CMS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #00f7ff;
+      --secondary: #ff00d6;
+      --accent: #00ff9d;
+      --dark: #0a0a1a;
+      --darker: #050510;
+      --light: #ffffff;
+      --gray: #a0a0b0;
+      --card-bg: rgba(25, 25, 50, 0.5);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 5, 40, 0.37);
+      --success: #00ff8c;
+      --error: #ff3860;
+      --warning: #ffdd57;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--darker);
+      color: var(--light);
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(circle at 10% 20%, rgba(0, 247, 255, 0.05) 0%, transparent 20%),
+        radial-gradient(circle at 90% 80%, rgba(255, 0, 214, 0.05) 0%, transparent 20%);
+      min-height: 100vh;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: 1px;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+      font-weight: 300;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* Header */
+    .admin-header {
+      background: var(--dark);
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .admin-header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .admin-logo {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--light);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .admin-logo span {
+      color: var(--primary);
+      text-shadow: 0 0 10px rgba(0, 247, 255, 0.5);
+    }
+
+    .admin-nav {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .admin-nav a {
+      color: var(--light);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .admin-nav a:hover {
+      color: var(--primary);
+    }
+
+    /* Main Layout */
+    .admin-main {
+      display: flex;
+      min-height: calc(100vh - 80px);
+    }
+
+    /* Sidebar */
+    .admin-sidebar {
+      width: 250px;
+      background: var(--dark);
+      padding: 2rem 1rem;
+      border-right: 1px solid var(--glass-border);
+    }
+
+    .admin-menu {
+      list-style: none;
+    }
+
+    .admin-menu li {
+      margin-bottom: 0.5rem;
+    }
+
+    .admin-menu a {
+      display: block;
+      padding: 0.8rem 1rem;
+      color: var(--light);
+      text-decoration: none;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+
+    .admin-menu a:hover,
+    .admin-menu a.active {
+      background: rgba(0, 247, 255, 0.1);
+      color: var(--primary);
+    }
+
+    .admin-menu i {
+      width: 20px;
+      margin-right: 0.5rem;
+    }
+
+    /* Content Area */
+    .admin-content {
+      flex: 1;
+      padding: 2rem;
+    }
+
+    .admin-section {
+      display: none;
+    }
+
+    .admin-section.active {
+      display: block;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    /* Dashboard Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 10px;
+      padding: 1.5rem;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(5px);
+    }
+
+    .stat-card h3 {
+      color: var(--gray);
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-card .value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Forms */
+    .admin-form {
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 2rem;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      color: var(--light);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0, 247, 255, 0.3);
+    }
+
+    textarea.form-control {
+      min-height: 150px;
+      resize: vertical;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-block;
+      padding: 0.8rem 1.5rem;
+      background: linear-gradient(45deg, var(--primary), var(--accent));
+      color: var(--darker);
+      text-decoration: none;
+      font-weight: 600;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 247, 255, 0.4);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(0, 247, 255, 0.1);
+    }
+
+    .btn-danger {
+      background: transparent;
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 56, 96, 0.1);
+    }
+
+    /* Tables */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card-bg);
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--glass-border);
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--glass-border);
+    }
+
+    .data-table th {
+      background: rgba(0, 247, 255, 0.1);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .data-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .data-table tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .table-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .action-btn {
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .edit-btn {
+      background: rgba(0, 247, 255, 0.1);
+      color: var(--primary);
+    }
+
+    .delete-btn {
+      background: rgba(255, 0, 0, 0.1);
+      color: #ff5555;
+    }
+
+    /* Image Upload */
+    .image-upload {
+      border: 2px dashed var(--glass-border);
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .image-upload:hover {
+      border-color: var(--primary);
+    }
+
+    .image-preview {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .preview-item {
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      height: 120px;
+    }
+
+    .preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .remove-image {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(255, 0, 0, 0.7);
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+
+    /* Login Page */
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: var(--darker);
+    }
+
+    .login-form {
+      width: 100%;
+      max-width: 400px;
+      background: var(--card-bg);
+      border-radius: 15px;
+      padding: 2rem;
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    /* Specifications Input */
+    .specs-container {
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .spec-row {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+      align-items: center;
+    }
+
+    .spec-input {
+      flex: 1;
+    }
+
+    .remove-spec {
+      color: var(--error);
+      cursor: pointer;
+      padding: 0.5rem;
+    }
+
+    /* Alerts and Messages */
+    .alert {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .alert-success {
+      background: rgba(0, 255, 140, 0.1);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+
+    .alert-error {
+      background: rgba(255, 56, 96, 0.1);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+
+    .alert-warning {
+      background: rgba(255, 221, 87, 0.1);
+      border: 1px solid var(--warning);
+      color: var(--warning);
+    }
+
+    /* Loading States */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* Utilities */
+    .text-center {
+      text-align: center;
+    }
+
+    .mb-3 {
+      margin-bottom: 1.5rem;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Status badges */
+    .status-badge {
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .status-badge.active {
+      background: rgba(0, 255, 140, 0.2);
+      color: var(--success);
+    }
+
+    .status-badge.draft {
+      background: rgba(255, 221, 87, 0.2);
+      color: var(--warning);
+    }
+
+    .status-badge.out_of_stock {
+      background: rgba(255, 56, 96, 0.2);
+      color: var(--error);
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .admin-main {
+        flex-direction: column;
+      }
+
+      .admin-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+
+      .spec-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .admin-nav {
+        display: none;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .data-table {
+        display: block;
+        overflow-x: auto;
+      }
+
+      .admin-content {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Login Screen -->
+  <div id="loginScreen" class="login-container">
+    <div class="login-form">
+      <div class="login-logo">
+        <h1 class="admin-logo">Kidane <span>Mobile</span> Admin</h1>
+        <p>Access your management dashboard</p>
+      </div>
+
+      <div id="loginAlert" class="alert alert-error hidden"></div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">Email Address</label>
+          <input type="email" id="loginEmail" class="form-control" required>
+        </div>
+
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn" style="width: 100%" id="loginBtn">
+          <span id="loginBtnText">Login</span>
+          <span id="loginSpinner" class="loading hidden"></span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div id="adminDashboard" class="hidden">
+    <!-- Header -->
+    <header class="admin-header">
+      <div class="container admin-header-container">
+        <a href="#" class="admin-logo">Kidane <span>Mobile</span> Admin</a>
+
+        <nav class="admin-nav">
+          <a href="#"><i class="fas fa-user"></i> <span id="adminUserName">Admin User</span></a>
+          <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="admin-main">
+      <!-- Sidebar -->
+      <aside class="admin-sidebar">
+        <ul class="admin-menu">
+          <li><a href="#" class="active" data-section="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+          </li>
+          <li><a href="#" data-section="products"><i class="fas fa-mobile-alt"></i> Products</a></li>
+          <li><a href="#" data-section="categories"><i class="fas fa-list"></i> Categories</a></li>
+          <li><a href="#" data-section="orders"><i class="fas fa-shopping-cart"></i> Orders</a></li>
+          <li><a href="#" data-section="messages"><i class="fas fa-envelope"></i> Messages</a></li>
+          <li><a href="#" data-section="settings"><i class="fas fa-cog"></i> Settings</a></li>
+        </ul>
+      </aside>
+
+      <!-- Content Area -->
+      <main class="admin-content">
+        <div id="adminAlert"></div>
+
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="admin-section active">
+          <div class="section-header">
+            <h2>Dashboard</h2>
+            <p>Welcome back, <span id="dashboardUserName">Admin</span>!</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h3>Total Products</h3>
+              <div class="value" id="totalProducts">0</div>
+              <p>Across all categories</p>
+            </div>
+
+            <div class="stat-card">
+              <h3>New Orders</h3>
+              <div class="value" id="newOrders">0</div>
+              <p>Waiting for processing</p>
+            </div>
+
+            <div class="stat-card">
+              <h3>Unread Messages</h3>
+              <div class="value" id="unreadMessages">0</div>
+              <p>From customers</p>
+            </div>
+
+            <div class="stat-card">
+              <h3>Total Revenue</h3>
+              <div class="value" id="totalRevenue">$0</div>
+              <p>This month</p>
+            </div>
+          </div>
+
+          <div class="section-header">
+            <h3>Recent Activities</h3>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Activity</th>
+                <th>Date</th>
+                <th>User</th>
+              </tr>
+            </thead>
+            <tbody id="recentActivities">
+              <tr>
+                <td colspan="3" class="text-center">Loading activities...</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Products Section -->
+        <section id="products" class="admin-section">
+          <div class="section-header">
+            <h2>Product Management</h2>
+            <button class="btn" id="addProductBtn">Add New Product</button>
+          </div>
+
+          <!-- Product List -->
+          <div id="productList">
+            <div class="admin-form">
+              <div class="form-group">
+                <label for="productSearch">Search Products</label>
+                <input type="text" id="productSearch" class="form-control" placeholder="Search by name, category...">
+              </div>
+            </div>
+
+            <div id="productsTableContainer">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Price</th>
+                    <th>Stock</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="productsTableBody">
+                  <tr>
+                    <td colspan="7" class="text-center">Loading products...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Add/Edit Product Form -->
+          <form id="productForm" class="admin-form hidden">
+            <h3 id="productFormTitle">Add New Product</h3>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="productName">Product Name *</label>
+                <input type="text" id="productName" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label for="productPrice">Price ($) *</label>
+                <input type="number" id="productPrice" class="form-control" step="0.01" min="0" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="productCategory">Category *</label>
+                <select id="productCategory" class="form-control" required>
+                  <option value="">Select Category</option>
+                  <!-- Categories will be loaded dynamically -->
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="productStock">Stock Quantity *</label>
+                <input type="number" id="productStock" class="form-control" min="0" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="productStatus">Status</label>
+              <select id="productStatus" class="form-control">
+                <option value="active">Active</option>
+                <option value="draft">Draft</option>
+                <option value="out_of_stock">Out of Stock</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="productDescription">Description *</label>
+              <textarea id="productDescription" class="form-control" required></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Specifications</label>
+              <div class="specs-container" id="specsContainer">
+                <div class="spec-row">
+                  <input type="text" class="form-control spec-input" placeholder="Specification name">
+                  <input type="text" class="form-control spec-input" placeholder="Value">
+                  <span class="remove-spec"><i class="fas fa-times"></i></span>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary" id="addSpecBtn">
+                <i class="fas fa-plus"></i> Add Specification
+              </button>
+            </div>
+
+            <div class="form-group">
+              <label>Product Images</label>
+              <div class="image-upload" id="imageUploadArea">
+                <i class="fas fa-cloud-upload-alt"
+                  style="font-size: 2rem; margin-bottom: 1rem; color: var(--primary);"></i>
+                <p>Click to upload images or drag and drop</p>
+                <p style="font-size: 0.8rem; color: var(--gray);">PNG, JPG up to 5MB</p>
+                <input type="file" id="productImages" multiple accept="image/*" style="display: none;">
+              </div>
+
+              <div class="image-preview" id="imagePreview"></div>
+            </div>
+
+            <div class="form-group">
+              <button type="button" class="btn" id="saveProductBtn">
+                <span id="saveProductBtnText">Save Product</span>
+                <span id="saveProductSpinner" class="loading hidden"></span>
+              </button>
+              <button type="button" class="btn btn-secondary" id="cancelProductBtn">Cancel</button>
+              <button type="button" class="btn btn-danger hidden" id="deleteProductBtn">Delete Product</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Categories Section -->
+        <section id="categories" class="admin-section">
+          <div class="section-header">
+            <h2>Category Management</h2>
+            <button class="btn" id="addCategoryBtn">Add New Category</button>
+          </div>
+
+          <div id="categoryList">
+            <div class="admin-form">
+              <div class="form-group">
+                <label for="categorySearch">Search Categories</label>
+                <input type="text" id="categorySearch" class="form-control" placeholder="Search categories...">
+              </div>
+            </div>
+
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Product Count</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="categoriesTableBody">
+                <tr>
+                  <td colspan="4" class="text-center">Loading categories...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <form id="categoryForm" class="admin-form hidden">
+            <h3 id="categoryFormTitle">Add New Category</h3>
+
+            <div class="form-group">
+              <label for="categoryName">Category Name *</label>
+              <input type="text" id="categoryName" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+              <label for="categoryDescription">Description</label>
+              <textarea id="categoryDescription" class="form-control"></textarea>
+            </div>
+
+            <div class="form-group">
+              <button type="button" class="btn" id="saveCategoryBtn">Save Category</button>
+              <button type="button" class="btn btn-secondary" id="cancelCategoryBtn">Cancel</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Orders Section -->
+        <section id="orders" class="admin-section">
+          <div class="section-header">
+            <h2>Order Management</h2>
+            <p>View and process customer orders</p>
+          </div>
+
+          <div class="admin-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="orderStatusFilter">Filter by Status</label>
+                <select id="orderStatusFilter" class="form-control">
+                  <option value="">All Orders</option>
+                  <option value="pending">Pending</option>
+                  <option value="processing">Processing</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="orderDateFilter">Filter by Date</label>
+                <input type="date" id="orderDateFilter" class="form-control">
+              </div>
+            </div>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+              <tr>
+                <td colspan="6" class="text-center">Loading orders...</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Messages Section -->
+        <section id="messages" class="admin-section">
+          <div class="section-header">
+            <h2>Customer Messages</h2>
+            <p>Communicate with your customers</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <h3>Total Messages</h3>
+              <div class="value" id="totalMessages">0</div>
+            </div>
+            <div class="stat-card">
+              <h3>Unread Messages</h3>
+              <div class="value" id="unreadMessagesCount">0</div>
+            </div>
+            <div class="stat-card">
+              <h3>Replied</h3>
+              <div class="value" id="repliedMessages">0</div>
+            </div>
+          </div>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>From</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="messagesTableBody">
+              <tr>
+                <td colspan="5" class="text-center">Loading messages...</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="settings" class="admin-section">
+          <div class="section-header">
+            <h2>Settings</h2>
+            <p>Configure your store settings</p>
+          </div>
+
+          <div class="admin-form">
+            <h3>Store Information</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="storeName">Store Name</label>
+                <input type="text" id="storeName" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="storeEmail">Contact Email</label>
+                <input type="email" id="storeEmail" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="storePhone">Phone Number</label>
+                <input type="tel" id="storePhone" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="storeAddress">Address</label>
+                <input type="text" id="storeAddress" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <button type="button" class="btn" id="saveSettingsBtn">Save Settings</button>
+            </div>
+          </div>
+
+          <div class="admin-form">
+            <h3>Administrator Account</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="adminName">Name</label>
+                <input type="text" id="adminName" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="adminEmail">Email</label>
+                <input type="email" id="adminEmail" class="form-control" value="admin@example.com" disabled>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="currentPassword">Current Password</label>
+                <input type="password" id="currentPassword" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="newPassword">New Password</label>
+                <input type="password" id="newPassword" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <button type="button" class="btn" id="saveAdminBtn">Update Account</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script>// Configuration - Replace these with your actual Supabase credentials
+    const SUPABASE_URL = 'https://mmsrhwfxbikovqohfezp.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1tc3Jod2Z4Ymlrb3Zxb2hmZXpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0NDcwMDgsImV4cCI6MjA3MzAyMzAwOH0.4hQUhwEDTBYFmdGZhpn82OGoQ9V7e3_sax7dV_PR7_Y';
+
+    // Initialize Supabase
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Global state
+    let currentUser = null;
+    let currentProductId = null;
+    let currentCategoryId = null;
+    let products = [];
+    let categories = [];
+    let orders = [];
+    let messages = [];
+
+    // DOM Elements
+    const loginScreen = document.getElementById('loginScreen');
+    const adminDashboard = document.getElementById('adminDashboard');
+    const loginForm = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginBtnText = document.getElementById('loginBtnText');
+    const loginSpinner = document.getElementById('loginSpinner');
+    const loginAlert = document.getElementById('loginAlert');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const adminUserName = document.getElementById('adminUserName');
+    const dashboardUserName = document.getElementById('dashboardUserName');
+    const adminAlert = document.getElementById('adminAlert');
+
+    const menuLinks = document.querySelectorAll('.admin-menu a');
+    const adminSections = document.querySelectorAll('.admin-section');
+
+    // Product elements
+    const addProductBtn = document.getElementById('addProductBtn');
+    const productList = document.getElementById('productList');
+    const productForm = document.getElementById('productForm');
+    const productFormTitle = document.getElementById('productFormTitle');
+    const cancelProductBtn = document.getElementById('cancelProductBtn');
+    const saveProductBtn = document.getElementById('saveProductBtn');
+    const saveProductBtnText = document.getElementById('saveProductBtnText');
+    const saveProductSpinner = document.getElementById('saveProductSpinner');
+    const deleteProductBtn = document.getElementById('deleteProductBtn');
+    const imageUploadArea = document.getElementById('imageUploadArea');
+    const productImages = document.getElementById('productImages');
+    const imagePreview = document.getElementById('imagePreview');
+    const productsTableBody = document.getElementById('productsTableBody');
+    const productSearch = document.getElementById('productSearch');
+    const productCategorySelect = document.getElementById('productCategory');
+
+    // Dashboard elements
+    const totalProductsEl = document.getElementById('totalProducts');
+    const newOrdersEl = document.getElementById('newOrders');
+    const unreadMessagesEl = document.getElementById('unreadMessages');
+    const totalRevenueEl = document.getElementById('totalRevenue');
+    const recentActivities = document.getElementById('recentActivities');
+
+    // Specification elements
+    const specsContainer = document.getElementById('specsContainer');
+    const addSpecBtn = document.getElementById('addSpecBtn');
+
+    // Category elements
+    const addCategoryBtn = document.getElementById('addCategoryBtn');
+    const categoryList = document.getElementById('categoryList');
+    const categoryForm = document.getElementById('categoryForm');
+    const categoryFormTitle = document.getElementById('categoryFormTitle');
+    const saveCategoryBtn = document.getElementById('saveCategoryBtn');
+    const cancelCategoryBtn = document.getElementById('cancelCategoryBtn');
+    const categoriesTableBody = document.getElementById('categoriesTableBody');
+    const categorySearch = document.getElementById('categorySearch');
+
+    // Order elements
+    const ordersTableBody = document.getElementById('ordersTableBody');
+    const orderStatusFilter = document.getElementById('orderStatusFilter');
+    const orderDateFilter = document.getElementById('orderDateFilter');
+
+    // Message elements
+    const messagesTableBody = document.getElementById('messagesTableBody');
+    const totalMessagesEl = document.getElementById('totalMessages');
+    const unreadMessagesCountEl = document.getElementById('unreadMessagesCount');
+    const repliedMessagesEl = document.getElementById('repliedMessages');
+
+    // Settings elements
+    const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+    const saveAdminBtn = document.getElementById('saveAdminBtn');
+
+    // Utility Functions
+    function showAlert(message, type = 'error', container = adminAlert) {
+      container.innerHTML = `
+    <div class="alert alert-${type}">
+      <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'exclamation-circle'}"></i>
+      ${message}
+    </div>
+  `;
+      container.classList.remove('hidden');
+
+      // Auto hide after 5 seconds for non-error messages
+      if (type !== 'error') {
+        setTimeout(() => {
+          container.classList.add('hidden');
+        }, 5000);
+      }
+    }
+
+    function clearAlert(container = adminAlert) {
+      container.innerHTML = '';
+      container.classList.add('hidden');
+    }
+
+    function setLoading(button, isLoading) {
+      const spinner = button.querySelector('.loading') || button.nextElementSibling;
+      const text = button.querySelector('span:not(.loading)');
+
+      if (isLoading) {
+        button.disabled = true;
+        if (text) text.classList.add('hidden');
+        if (spinner) spinner.classList.remove('hidden');
+      } else {
+        button.disabled = false;
+        if (text) text.classList.remove('hidden');
+        if (spinner) spinner.classList.add('hidden');
+      }
+    }
+
+    function formatPrice(price) {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+      }).format(price);
+    }
+
+    function formatDate(dateString) {
+      const options = { year: 'numeric', month: 'short', day: 'numeric' };
+      return new Date(dateString).toLocaleDateString(undefined, options);
+    }
+
+    // Authentication Functions
+    async function login(email, password) {
+      try {
+        setLoading(loginBtn, true);
+        clearAlert(loginAlert);
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        currentUser = data.user;
+        adminUserName.textContent = currentUser.email;
+        dashboardUserName.textContent = currentUser.email;
+
+        loginScreen.classList.add('hidden');
+        adminDashboard.classList.remove('hidden');
+
+        // Load initial data
+        loadDashboardData();
+        loadProducts();
+        loadCategories();
+        loadOrders();
+        loadMessages();
+
+      } catch (error) {
+        console.error('Login error:', error);
+        showAlert(error.message, 'error', loginAlert);
+      } finally {
+        setLoading(loginBtn, false);
+      }
+    }
+
+    async function logout() {
+      try {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+
+        currentUser = null;
+        adminDashboard.classList.add('hidden');
+        loginScreen.classList.remove('hidden');
+        loginForm.reset();
+        clearAlert(loginAlert);
+      } catch (error) {
+        console.error('Logout error:', error);
+        showAlert(error.message);
+      }
+    }
+
+    async function checkAuth() {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) throw error;
+
+        if (session) {
+          currentUser = session.user;
+          adminUserName.textContent = currentUser.email;
+          dashboardUserName.textContent = currentUser.email;
+
+          loginScreen.classList.add('hidden');
+          adminDashboard.classList.remove('hidden');
+
+          // Load initial data
+          loadDashboardData();
+          loadProducts();
+          loadCategories();
+          loadOrders();
+          loadMessages();
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      }
+    }
+
+    // Dashboard Functions
+    async function loadDashboardData() {
+      try {
+        // Get products count
+        const { count: productsCount, error: productsError } = await supabase
+          .from('products')
+          .select('*', { count: 'exact', head: true });
+
+        if (productsError) throw productsError;
+        totalProductsEl.textContent = productsCount || 0;
+
+        // Get orders count (pending status as new orders)
+        const { count: newOrdersCount, error: ordersError } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending');
+
+        if (ordersError) throw ordersError;
+        newOrdersEl.textContent = newOrdersCount || 0;
+
+        // Get unread messages count
+        const { count: unreadMessagesCount, error: messagesError } = await supabase
+          .from('contacts')
+          .select('*', { count: 'exact', head: true })
+          .eq('read', false);
+
+        if (messagesError) throw messagesError;
+        unreadMessagesEl.textContent = unreadMessagesCount || 0;
+
+        // Get total revenue (this month)
+        const now = new Date();
+        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+        const { data: revenueData, error: revenueError } = await supabase
+          .from('orders')
+          .select('total_amount')
+          .eq('status', 'delivered')
+          .gte('created_at', firstDayOfMonth);
+
+        if (revenueError) throw revenueError;
+
+        const totalRevenue = revenueData.reduce((sum, order) => sum + (order.total_amount || 0), 0);
+        totalRevenueEl.textContent = formatPrice(totalRevenue);
+
+        // Load recent activities
+        loadRecentActivities();
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        showAlert('Failed to load dashboard data');
+      }
+    }
+
+    async function loadRecentActivities() {
+      try {
+        // Get recent products, orders, and messages
+        const { data: recentProducts, error: productsError } = await supabase
+          .from('products')
+          .select('name, created_at')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (productsError) throw productsError;
+
+        const { data: recentOrders, error: ordersError } = await supabase
+          .from('orders')
+          .select('id, created_at, status')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (ordersError) throw ordersError;
+
+        // Format activities for display
+        let activitiesHTML = '';
+
+        if (recentProducts && recentProducts.length > 0) {
+          recentProducts.forEach(product => {
+            activitiesHTML += `
+          <tr>
+            <td>New product added: ${product.name}</td>
+            <td>${formatDate(product.created_at)}</td>
+            <td>System</td>
+          </tr>
+        `;
+          });
+        }
+
+        if (recentOrders && recentOrders.length > 0) {
+          recentOrders.forEach(order => {
+            activitiesHTML += `
+          <tr>
+            <td>New order received: #${order.id}</td>
+            <td>${formatDate(order.created_at)}</td>
+            <td>Customer</td>
+          </tr>
+        `;
+          });
+        }
+
+        if (activitiesHTML === '') {
+          activitiesHTML = `
+        <tr>
+          <td colspan="3">No recent activities</td>
+        </tr>
+      `;
+        }
+
+        recentActivities.innerHTML = activitiesHTML;
+      } catch (error) {
+        console.error('Error loading activities:', error);
+        recentActivities.innerHTML = `
+      <tr>
+        <td colspan="3">Failed to load activities</td>
+      </tr>
+    `;
+      }
+    }
+
+    // Product Functions
+    async function loadProducts(searchTerm = '') {
+      try {
+        let query = supabase
+          .from('products')
+          .select(`
+        *,
+        categories (name)
+      `)
+          .order('created_at', { ascending: false });
+
+        if (searchTerm) {
+          query = query.or(`name.ilike.%${searchTerm}%,categories.name.ilike.%${searchTerm}%`);
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        products = data || [];
+        renderProducts(products);
+      } catch (error) {
+        console.error('Error loading products:', error);
+        showAlert('Failed to load products');
+        productsTableBody.innerHTML = `
+      <tr>
+        <td colspan="7">Failed to load products</td>
+      </tr>
+    `;
+      }
+    }
+
+    function renderProducts(products) {
+      if (products.length === 0) {
+        productsTableBody.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center">No products found</td>
+      </tr>
+    `;
+        return;
+      }
+
+      productsTableBody.innerHTML = products.map(product => `
+    <tr>
+      <td>
+        ${product.images && product.images.length > 0 ?
+          `<img src="${product.images[0]}" width="50" height="50" style="object-fit: cover; border-radius: 5px;" alt="${product.name}">` :
+          `<div style="width: 50px; height: 50px; background: var(--glass-bg); border-radius: 5px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-image" style="color: var(--gray);"></i>
+          </div>`
+        }
+      </td>
+      <td>${product.name}</td>
+      <td>${product.categories ? product.categories.name : 'Uncategorized'}</td>
+      <td>${formatPrice(product.price)}</td>
+      <td>${product.stock}</td>
+      <td>
+        <span class="status-badge ${product.status}">
+          ${product.status.replace('_', ' ')}
+        </span>
+      </td>
+      <td class="table-actions">
+        <button class="action-btn edit-btn" data-id="${product.id}">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="action-btn delete-btn" data-id="${product.id}">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+
+      // Add event listeners to action buttons
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const productId = e.currentTarget.getAttribute('data-id');
+          editProduct(productId);
+        });
+      });
+
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const productId = e.currentTarget.getAttribute('data-id');
+          confirmDeleteProduct(productId);
+        });
+      });
+    }
+
+    function showProductForm() {
+      productList.classList.add('hidden');
+      productForm.classList.remove('hidden');
+      clearAlert();
+    }
+
+    function hideProductForm() {
+      productForm.classList.add('hidden');
+      productList.classList.remove('hidden');
+      resetProductForm();
+      clearAlert();
+    }
+
+    function resetProductForm() {
+      document.getElementById('productForm').reset();
+      imagePreview.innerHTML = '';
+      specsContainer.innerHTML = `
+    <div class="spec-row">
+      <input type="text" class="form-control spec-input" placeholder="Specification name">
+      <input type="text" class="form-control spec-input" placeholder="Value">
+      <span class="remove-spec"><i class="fas fa-times"></i></span>
+    </div>
+  `;
+      currentProductId = null;
+      productFormTitle.textContent = 'Add New Product';
+      deleteProductBtn.classList.add('hidden');
+
+      // Re-add event listeners to spec rows
+      addSpecEvents();
+    }
+
+    async function editProduct(productId) {
+      try {
+        const product = products.find(p => p.id === productId);
+        if (!product) throw new Error('Product not found');
+
+        currentProductId = productId;
+
+        // Fill form with product data
+        document.getElementById('productName').value = product.name;
+        document.getElementById('productPrice').value = product.price;
+        document.getElementById('productCategory').value = product.category_id;
+        document.getElementById('productStock').value = product.stock;
+        document.getElementById('productStatus').value = product.status;
+        document.getElementById('productDescription').value = product.description;
+
+        // Load specifications
+        specsContainer.innerHTML = '';
+        if (product.specifications && Object.keys(product.specifications).length > 0) {
+          for (const [key, value] of Object.entries(product.specifications)) {
+            addSpecRow(key, value);
+          }
+        } else {
+          addSpecRow('', '');
+        }
+
+        // Load images
+        imagePreview.innerHTML = '';
+        if (product.images && product.images.length > 0) {
+          product.images.forEach(image => {
+            addImagePreview(image);
+          });
+        }
+
+        // Update UI
+        productFormTitle.textContent = 'Edit Product';
+        deleteProductBtn.classList.remove('hidden');
+        showProductForm();
+
+      } catch (error) {
+        console.error('Error loading product for edit:', error);
+        showAlert('Failed to load product data');
+      }
+    }
+
+    async function uploadImage(file) {
+      try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `products/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('product-images')
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(filePath);
+
+        return publicUrl;
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        throw error;
+      }
+    }
+
+    async function saveProduct() {
+      try {
+        // Validate form
+        const name = document.getElementById('productName').value;
+        const price = parseFloat(document.getElementById('productPrice').value);
+        const categoryId = parseInt(document.getElementById('productCategory').value);
+        const stock = parseInt(document.getElementById('productStock').value);
+        const status = document.getElementById('productStatus').value;
+        const description = document.getElementById('productDescription').value;
+
+        if (!name || !price || !categoryId || isNaN(stock) || !description) {
+          showAlert('Please fill all required fields');
+          return;
+        }
+
+        setLoading(saveProductBtn, true);
+
+        // Collect specifications
+        const specifications = {};
+        const specRows = specsContainer.querySelectorAll('.spec-row');
+        specRows.forEach(row => {
+          const keyInput = row.querySelector('.spec-input:first-of-type');
+          const valueInput = row.querySelector('.spec-input:last-of-type');
+
+          if (keyInput.value.trim() && valueInput.value.trim()) {
+            specifications[keyInput.value.trim()] = valueInput.value.trim();
+          }
+        });
+
+        // Upload images if there are new files
+        const imageUrls = [];
+        const fileInput = document.getElementById('productImages');
+        const files = fileInput.files;
+
+        // First, upload any new images
+        if (files.length > 0) {
+          for (let i = 0; i < files.length; i++) {
+            try {
+              const imageUrl = await uploadImage(files[i]);
+              imageUrls.push(imageUrl);
+            } catch (error) {
+              console.error('Failed to upload image:', error);
+              showAlert('Failed to upload some images. Please try again.');
+              setLoading(saveProductBtn, false);
+              return;
+            }
+          }
+        } else {
+          // Keep existing images from preview
+          const imagePreviews = imagePreview.querySelectorAll('.preview-item');
+          imagePreviews.forEach(preview => {
+            const img = preview.querySelector('img');
+            if (img && img.src) {
+              imageUrls.push(img.src);
+            }
+          });
+        }
+
+        const productData = {
+          name,
+          price,
+          category_id: categoryId,
+          stock,
+          status,
+          description,
+          specifications,
+          images: imageUrls  // This is the key change - using 'images' instead of 'image_urls'
+        };
+
+        let result;
+        if (currentProductId) {
+          // Update existing product
+          const { data, error } = await supabase
+            .from('products')
+            .update(productData)
+            .eq('id', currentProductId)
+            .select();
+
+          if (error) throw error;
+          result = data;
+        } else {
+          // Create new product
+          const { data, error } = await supabase
+            .from('products')
+            .insert([productData])
+            .select();
+
+          if (error) throw error;
+          result = data;
+        }
+
+        setLoading(saveProductBtn, false);
+        showAlert(`Product ${currentProductId ? 'updated' : 'created'} successfully!`, 'success');
+
+        // Reload products and return to list
+        loadProducts();
+        setTimeout(() => {
+          hideProductForm();
+        }, 1500);
+
+      } catch (error) {
+        console.error('Error saving product:', error);
+        setLoading(saveProductBtn, false);
+        showAlert(`Failed to save product: ${error.message}`);
+      }
+    }
+
+    function confirmDeleteProduct(productId) {
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+
+      if (confirm(`Are you sure you want to delete "${product.name}"? This action cannot be undone.`)) {
+        deleteProduct(productId);
+      }
+    }
+
+    async function deleteProduct(productId) {
+      try {
+        const { error } = await supabase
+          .from('products')
+          .delete()
+          .eq('id', productId);
+
+        if (error) throw error;
+
+        showAlert('Product deleted successfully', 'success');
+        loadProducts();
+
+        // If we're in the edit form, hide it
+        if (currentProductId === productId) {
+          hideProductForm();
+        }
+      } catch (error) {
+        console.error('Error deleting product:', error);
+        showAlert('Failed to delete product');
+      }
+    }
+
+    // Category Functions
+    async function loadCategories(searchTerm = '') {
+      try {
+        let query = supabase
+          .from('categories')
+          .select('*')
+          .order('name', { ascending: true });
+
+        if (searchTerm) {
+          query = query.ilike('name', `%${searchTerm}%`);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
+
+        categories = data || [];
+        renderCategories(categories);
+        updateProductCategoryDropdown(categories);
+
+      } catch (error) {
+        console.error('Error loading categories:', error);
+        showAlert('Failed to load categories. Make sure the categories table exists in your database.');
+        categoriesTableBody.innerHTML = `
+      <tr>
+        <td colspan="4">Failed to load categories. Please check your database setup.</td>
+      </tr>
+    `;
+      }
+    }
+
+    function updateProductCategoryDropdown(categories) {
+      const categorySelect = document.getElementById('productCategory');
+
+      // Clear existing options except the first one
+      while (categorySelect.options.length > 1) {
+        categorySelect.remove(1);
+      }
+
+      // Add categories to dropdown
+      categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
+      });
+    }
+
+    function renderCategories(categories) {
+      if (categories.length === 0) {
+        categoriesTableBody.innerHTML = `
+      <tr>
+        <td colspan="4" class="text-center">No categories found. <a href="#" id="createSampleCategories">Create sample categories</a></td>
+      </tr>
+    `;
+
+        // Add event listener for creating sample categories
+        const createSampleLink = document.getElementById('createSampleCategories');
+        if (createSampleLink) {
+          createSampleLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            createSampleCategories();
+          });
+        }
+        return;
+      }
+
+      categoriesTableBody.innerHTML = categories.map(category => `
+    <tr>
+      <td>${category.name}</td>
+      <td>${category.description || 'No description'}</td>
+      <td>0</td> <!-- Product count would need a separate query -->
+      <td class="table-actions">
+        <button class="action-btn edit-btn" data-id="${category.id}">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="action-btn delete-btn" data-id="${category.id}">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+
+      // Add event listeners to action buttons
+      document.querySelectorAll('#categoriesTableBody .edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const categoryId = e.currentTarget.getAttribute('data-id');
+          editCategory(categoryId);
+        });
+      });
+
+      document.querySelectorAll('#categoriesTableBody .delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const categoryId = e.currentTarget.getAttribute('data-id');
+          confirmDeleteCategory(categoryId);
+        });
+      });
+    }
+
+    async function createSampleCategories() {
+      try {
+        setLoading(addCategoryBtn, true);
+
+        const sampleCategories = [
+          { name: 'smartphones', description: 'Latest smartphones from top brands' },
+          { name: 'smartwatches', description: 'Wearable technology for your wrist' },
+          { name: 'earbuds', description: 'Wireless earbuds and headphones' },
+          { name: 'cases', description: 'Protective cases and covers' },
+          { name: 'chargers', description: 'Charging cables and accessories' }
+        ];
+
+        const { error } = await supabase
+          .from('categories')
+          .insert(sampleCategories);
+
+        if (error) throw error;
+
+        showAlert('Sample categories created successfully!', 'success');
+        loadCategories();
+      } catch (error) {
+        console.error('Error creating sample categories:', error);
+        showAlert('Failed to create sample categories');
+      } finally {
+        setLoading(addCategoryBtn, false);
+      }
+    }
+
+    function showCategoryForm() {
+      categoryList.classList.add('hidden');
+      categoryForm.classList.remove('hidden');
+      clearAlert();
+    }
+
+    function hideCategoryForm() {
+      categoryForm.classList.add('hidden');
+      categoryList.classList.remove('hidden');
+      resetCategoryForm();
+      clearAlert();
+    }
+
+    function resetCategoryForm() {
+      document.getElementById('categoryForm').reset();
+      currentCategoryId = null;
+      categoryFormTitle.textContent = 'Add New Category';
+    }
+
+    async function editCategory(categoryId) {
+      try {
+        const category = categories.find(c => c.id === categoryId);
+        if (!category) throw new Error('Category not found');
+
+        currentCategoryId = categoryId;
+
+        // Fill form with category data
+        document.getElementById('categoryName').value = category.name;
+        document.getElementById('categoryDescription').value = category.description || '';
+
+        // Update UI
+        categoryFormTitle.textContent = 'Edit Category';
+        showCategoryForm();
+
+      } catch (error) {
+        console.error('Error loading category for edit:', error);
+        showAlert('Failed to load category data');
+      }
+    }
+
+    async function saveCategory() {
+      try {
+        // Validate form
+        const name = document.getElementById('categoryName').value;
+        const description = document.getElementById('categoryDescription').value;
+
+        if (!name) {
+          showAlert('Category name is required');
+          return;
+        }
+
+        setLoading(saveCategoryBtn, true);
+
+        const categoryData = {
+          name,
+          description
+        };
+
+        let result;
+        if (currentCategoryId) {
+          // Update existing category
+          const { data, error } = await supabase
+            .from('categories')
+            .update(categoryData)
+            .eq('id', currentCategoryId)
+            .select();
+
+          if (error) throw error;
+          result = data;
+        } else {
+          // Create new category
+          const { data, error } = await supabase
+            .from('categories')
+            .insert([categoryData])
+            .select();
+
+          if (error) throw error;
+          result = data;
+        }
+
+        setLoading(saveCategoryBtn, false);
+        showAlert(`Category ${currentCategoryId ? 'updated' : 'created'} successfully!`, 'success');
+
+        // Reload categories and return to list
+        loadCategories();
+        setTimeout(() => {
+          hideCategoryForm();
+        }, 1500);
+
+      } catch (error) {
+        console.error('Error saving category:', error);
+        setLoading(saveCategoryBtn, false);
+        showAlert(`Failed to save category: ${error.message}`);
+      }
+    }
+
+    function confirmDeleteCategory(categoryId) {
+      const category = categories.find(c => c.id === categoryId);
+      if (!category) return;
+
+      if (confirm(`Are you sure you want to delete "${category.name}"? Products in this category will not be deleted but will lose their category association.`)) {
+        deleteCategory(categoryId);
+      }
+    }
+
+    async function deleteCategory(categoryId) {
+      try {
+        const { error } = await supabase
+          .from('categories')
+          .delete()
+          .eq('id', categoryId);
+
+        if (error) throw error;
+
+        showAlert('Category deleted successfully', 'success');
+        loadCategories();
+      } catch (error) {
+        console.error('Error deleting category:', error);
+        showAlert('Failed to delete category');
+      }
+    }
+
+    // Order Functions
+    async function loadOrders() {
+      try {
+        const statusFilter = orderStatusFilter.value;
+        const dateFilter = orderDateFilter.value;
+
+        let query = supabase
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (statusFilter) {
+          query = query.eq('status', statusFilter);
+        }
+
+        if (dateFilter) {
+          const startDate = new Date(dateFilter);
+          const endDate = new Date(dateFilter);
+          endDate.setDate(endDate.getDate() + 1);
+
+          query = query.gte('created_at', startDate.toISOString())
+            .lt('created_at', endDate.toISOString());
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+
+        orders = data || [];
+        renderOrders(orders);
+      } catch (error) {
+        console.error('Error loading orders:', error);
+        showAlert('Failed to load orders');
+        ordersTableBody.innerHTML = `
+      <tr>
+        <td colspan="6">Failed to load orders</td>
+      </tr>
+    `;
+      }
+    }
+
+    function renderOrders(orders) {
+      if (orders.length === 0) {
+        ordersTableBody.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center">No orders found</td>
+      </tr>
+    `;
+        return;
+      }
+
+      ordersTableBody.innerHTML = orders.map(order => `
+    <tr>
+      <td>#${order.id}</td>
+      <td>${order.customer_name || 'Unknown Customer'}</td>
+      <td>${formatDate(order.created_at)}</td>
+      <td>${formatPrice(order.total_amount)}</td>
+      <td>
+        <span class="status-badge ${order.status}">
+          ${order.status}
+        </span>
+      </td>
+      <td class="table-actions">
+        <button class="action-btn edit-btn" data-id="${order.id}">
+          <i class="fas fa-eye"></i>
+        </button>
+        <button class="action-btn delete-btn" data-id="${order.id}">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+    }
+
+    // Message Functions
+    async function loadMessages() {
+      try {
+        const { data, error } = await supabase
+          .from('contacts')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        messages = data || [];
+
+        // Update message stats
+        totalMessagesEl.textContent = messages.length;
+        unreadMessagesCountEl.textContent = messages.filter(m => !m.read).length;
+        repliedMessagesEl.textContent = messages.filter(m => m.replied).length;
+
+        renderMessages(messages);
+      } catch (error) {
+        console.error('Error loading messages:', error);
+        showAlert('Failed to load messages');
+        messagesTableBody.innerHTML = `
+      <tr>
+        <td colspan="5">Failed to load messages</td>
+      </tr>
+    `;
+      }
+    }
+
+    function renderMessages(messages) {
+      if (messages.length === 0) {
+        messagesTableBody.innerHTML = `
+      <tr>
+        <td colspan="5" class="text-center">No messages found</td>
+      </tr>
+    `;
+        return;
+      }
+
+      messagesTableBody.innerHTML = messages.map(message => `
+    <tr>
+      <td>${message.name} (${message.email})</td>
+      <td>${message.subject}</td>
+      <td>${formatDate(message.created_at)}</td>
+      <td>
+        <span class="status-badge ${message.read ? 'read' : 'unread'}">
+          ${message.read ? 'Read' : 'Unread'}
+        </span>
+        ${message.replied ? '<span class="status-badge replied">Replied</span>' : ''}
+      </td>
+      <td class="table-actions">
+        <button class="action-btn edit-btn" data-id="${message.id}">
+          <i class="fas fa-eye"></i>
+        </button>
+        <button class="action-btn delete-btn" data-id="${message.id}">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+  `).join('');
+    }
+
+    // Specification Functions
+    function addSpecRow(key = '', value = '') {
+      const row = document.createElement('div');
+      row.className = 'spec-row';
+      row.innerHTML = `
+    <input type="text" class="form-control spec-input" placeholder="Specification name" value="${key}">
+    <input type="text" class="form-control spec-input" placeholder="Value" value="${value}">
+    <span class="remove-spec"><i class="fas fa-times"></i></span>
+  `;
+      specsContainer.appendChild(row);
+      addSpecEvents();
+    }
+
+    function addSpecEvents() {
+      // Add event to remove buttons
+      document.querySelectorAll('.remove-spec').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          if (specsContainer.querySelectorAll('.spec-row').length > 1) {
+            e.currentTarget.closest('.spec-row').remove();
+          }
+        });
+      });
+    }
+
+    // Image Upload Functions
+    function handleImageUpload(files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.match('image.*')) continue;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          addImagePreview(e.target.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    function addImagePreview(src) {
+      const previewItem = document.createElement('div');
+      previewItem.className = 'preview-item';
+      previewItem.innerHTML = `
+    <img src="${src}" alt="Preview">
+    <span class="remove-image"><i class="fas fa-times"></i></span>
+  `;
+
+      previewItem.querySelector('.remove-image').addEventListener('click', () => {
+        previewItem.remove();
+      });
+
+      imagePreview.appendChild(previewItem);
+    }
+
+    // Event Listeners
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      login(email, password);
+    });
+
+    logoutBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      logout();
+    });
+
+    menuLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+
+        // Update active menu item
+        menuLinks.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+
+        // Show corresponding section
+        const sectionId = link.getAttribute('data-section');
+        adminSections.forEach(section => {
+          section.classList.remove('active');
+        });
+        document.getElementById(sectionId).classList.add('active');
+
+        // Load section-specific data if needed
+        if (sectionId === 'orders') {
+          loadOrders();
+        } else if (sectionId === 'messages') {
+          loadMessages();
+        } else if (sectionId === 'categories') {
+          loadCategories();
+        }
+      });
+    });
+
+    addProductBtn.addEventListener('click', () => {
+      resetProductForm();
+      showProductForm();
+    });
+
+    cancelProductBtn.addEventListener('click', () => {
+      hideProductForm();
+    });
+
+    saveProductBtn.addEventListener('click', () => {
+      saveProduct();
+    });
+
+    deleteProductBtn.addEventListener('click', () => {
+      if (currentProductId) {
+        confirmDeleteProduct(currentProductId);
+      }
+    });
+
+    addSpecBtn.addEventListener('click', () => {
+      addSpecRow();
+    });
+
+    imageUploadArea.addEventListener('click', () => {
+      productImages.click();
+    });
+
+    productImages.addEventListener('change', (e) => {
+      handleImageUpload(e.target.files);
+    });
+
+    imageUploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      imageUploadArea.style.borderColor = 'var(--primary)';
+    });
+
+    imageUploadArea.addEventListener('dragleave', () => {
+      imageUploadArea.style.borderColor = 'var(--glass-border)';
+    });
+
+    imageUploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      imageUploadArea.style.borderColor = 'var(--glass-border)';
+      handleImageUpload(e.dataTransfer.files);
+    });
+
+    productSearch.addEventListener('input', (e) => {
+      loadProducts(e.target.value);
+    });
+
+    // Category event listeners
+    addCategoryBtn.addEventListener('click', () => {
+      resetCategoryForm();
+      showCategoryForm();
+    });
+
+    cancelCategoryBtn.addEventListener('click', () => {
+      hideCategoryForm();
+    });
+
+    saveCategoryBtn.addEventListener('click', () => {
+      saveCategory();
+    });
+
+    categorySearch.addEventListener('input', (e) => {
+      loadCategories(e.target.value);
+    });
+
+    // Order event listeners
+    orderStatusFilter.addEventListener('change', () => {
+      loadOrders();
+    });
+
+    orderDateFilter.addEventListener('change', () => {
+      loadOrders();
+    });
+
+    // Initialize
+    function init() {
+      checkAuth();
+      addSpecEvents();
+    }
+
+    // Start the application
+    init();
+  </script>
+</body>
+
+</html>
